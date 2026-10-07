@@ -1,0 +1,38 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+:root {
+  color-scheme: light;
+  font-synthesis: none;
+  --font-ui: 'Galmuri14', 'Galmuri11', 'Malgun Gothic', 'Apple SD Gothic Neo', sans-serif;
+  --font-code: 'GalmuriMono11', 'Galmuri11', Consolas, monospace;
+  --desk: #2a7b7a;
+  --desk-dot: #236967;
+  --face: #c8c8c8;
+  --ink: #111111;
+}
+
+body {
+  min-height: 100vh;
+  background-color: var(--desk);
+  background-image: radial-gradient(var(--desk-dot) 1px, transparent 1.5px);
+  background-size: 4px 4px;
+  color: var(--ink);
+  font-family: var(--font-ui);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+button {
+  -webkit-tap-highlight-color: transparent;
+}

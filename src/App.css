@@ -1,0 +1,620 @@
+:root {
+  --face: #c8c8c8;
+  --face-light: #e4e4e4;
+  --hi: #ffffff;
+  --shade: #808080;
+  --dark: #202020;
+  --ink: #111111;
+  --ink-soft: #3f3f3f;
+  --title-a: #16176b;
+  --title-b: #3b5bc2;
+  --amber: #f2b705;
+  --danger: #a31515;
+  --ok: #0a6b2d;
+  --editor-bg: #0b0b8f;
+  --editor-fg: #d8d8f0;
+
+  /* 베벨: 위·왼쪽은 밝게, 아래·오른쪽은 어둡게 */
+  --bevel-out:
+    inset -1px -1px 0 var(--dark), inset 1px 1px 0 var(--hi),
+    inset -2px -2px 0 var(--shade), inset 2px 2px 0 var(--face-light);
+  --bevel-in:
+    inset -1px -1px 0 var(--hi), inset 1px 1px 0 var(--dark),
+    inset -2px -2px 0 var(--face-light), inset 2px 2px 0 var(--shade);
+  --drop: 4px 4px 0 rgba(0, 0, 0, 0.35);
+}
+
+.app {
+  width: min(1180px, 100%);
+  margin: 0 auto;
+  padding: 36px 24px 72px;
+}
+
+/* ── 헤드라인 (바탕화면 위에 직접 얹음) ── */
+.app-header {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+  margin-bottom: 32px;
+}
+
+.brand-mark {
+  display: grid;
+  flex: 0 0 auto;
+  width: 64px;
+  height: 64px;
+  place-items: center;
+  background: var(--amber);
+  box-shadow: var(--bevel-out), var(--drop);
+  color: var(--ink);
+  font-size: 28px;
+  font-weight: 700;
+}
+
+.header-copy {
+  min-width: 0;
+}
+
+.header-copy h1 {
+  color: #ffffff;
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 1.3;
+  text-shadow: 2px 2px 0 #123f3e;
+}
+
+.header-copy p {
+  max-width: 62ch;
+  margin-top: 6px;
+  color: #e6f4f2;
+  text-shadow: 1px 1px 0 #123f3e;
+}
+
+/* ── 창 ── */
+.win {
+  background: var(--face);
+  box-shadow: var(--bevel-out), var(--drop);
+  padding: 3px;
+}
+
+.win-title {
+  display: flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 2px 8px;
+  background: linear-gradient(90deg, var(--title-a), var(--title-b));
+  color: #ffffff;
+}
+
+.win-title h2 {
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+.win-title--alert {
+  background: linear-gradient(90deg, #6b0f0f, #c23b3b);
+}
+
+.win-body {
+  padding: 16px;
+}
+
+.workspace {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 340px;
+  gap: 28px;
+  align-items: start;
+  margin-bottom: 28px;
+}
+
+/* ── 버튼 ── */
+.btn {
+  min-height: 34px;
+  padding: 0 14px;
+  background: var(--face);
+  border: 0;
+  box-shadow: var(--bevel-out);
+  color: var(--ink);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.btn:active:not(:disabled) {
+  box-shadow: var(--bevel-in);
+  padding: 2px 14px 0 16px;
+}
+
+.btn:disabled {
+  color: var(--shade);
+  text-shadow: 1px 1px 0 var(--hi);
+  cursor: not-allowed;
+}
+
+.btn-refresh {
+  width: 34px;
+  padding: 0;
+}
+
+.btn-refresh:active:not(:disabled) {
+  padding: 2px 0 0 2px;
+}
+
+.btn-remove:hover,
+.btn-clear:hover {
+  color: var(--danger);
+}
+
+:is(.btn, .tab, select, input, textarea, .code-block):focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
+}
+
+.btn:focus-visible,
+.tab:focus-visible {
+  outline-style: dotted;
+  outline-offset: -7px;
+}
+
+/* ── 입력 ── */
+.provider-select label,
+.api-key-input label,
+.prompt-heading {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: 700;
+}
+
+.prompt-heading {
+  font-size: 14px;
+}
+
+.provider-select select,
+.api-key-field input,
+.prompt-textarea {
+  width: 100%;
+  background: #ffffff;
+  border: 0;
+  border-radius: 0;
+  box-shadow: var(--bevel-in);
+  color: var(--ink);
+}
+
+.provider-select select {
+  height: 36px;
+  padding: 0 10px;
+  cursor: pointer;
+}
+
+.provider-select,
+.api-key-input + .api-key-input {
+  margin-bottom: 18px;
+}
+
+.api-key-field {
+  display: flex;
+  gap: 8px;
+}
+
+.api-key-field input {
+  min-width: 0;
+  height: 36px;
+  padding: 0 10px;
+  font-family: var(--font-code);
+}
+
+.key-status {
+  margin-top: 8px;
+  color: var(--ink-soft);
+}
+
+.key-status--ready {
+  color: var(--ok);
+  font-weight: 700;
+}
+
+.prompt-section {
+  width: 100%;
+}
+
+.prompt-form {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: end;
+}
+
+.prompt-textarea {
+  min-height: 140px;
+  padding: 12px;
+  resize: vertical;
+  line-height: 1.7;
+}
+
+.prompt-textarea::placeholder {
+  color: #6b6b6b;
+}
+
+.btn-generate {
+  height: 52px;
+  padding: 0 22px;
+  background: var(--title-a);
+  color: #ffffff;
+  font-weight: 700;
+}
+
+.btn-generate:active:not(:disabled) {
+  padding: 2px 22px 0 24px;
+}
+
+.btn-generate:focus-visible {
+  outline-color: var(--amber);
+}
+
+.btn-generate:disabled {
+  background: var(--face);
+}
+
+.prompt-examples {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 18px;
+  padding-top: 14px;
+  border-top: 2px groove var(--face-light);
+}
+
+.examples-label {
+  grid-column: 1 / -1;
+  font-weight: 700;
+}
+
+.example-chip {
+  min-height: 72px;
+  padding: 8px 10px;
+  line-height: 1.5;
+  text-align: left;
+  white-space: normal;
+}
+
+.example-chip:active:not(:disabled) {
+  padding: 10px 10px 8px 12px;
+}
+
+.example-chip:hover {
+  background: var(--face-light);
+}
+
+/* ── 오류 ── */
+.error-banner {
+  margin-bottom: 28px;
+}
+
+.error-banner .win-body {
+  color: var(--danger);
+  font-weight: 700;
+  word-break: break-word;
+}
+
+/* ── 결과 ── */
+.results-section {
+  min-height: 300px;
+}
+
+.results-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.results-header h2 {
+  color: #ffffff;
+  font-size: 14px;
+  text-shadow: 1px 1px 0 #123f3e;
+}
+
+.results-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+.empty-body {
+  display: flex;
+  gap: 28px;
+  align-items: center;
+  padding: 24px;
+}
+
+.empty-copy {
+  flex: 1;
+  min-width: 0;
+}
+
+.empty-copy h2 {
+  font-size: 28px;
+  line-height: 1.35;
+}
+
+.empty-copy p {
+  max-width: 46ch;
+  margin-top: 10px;
+  color: var(--ink-soft);
+}
+
+.empty-preview {
+  flex: 0 0 auto;
+  width: 300px;
+  max-width: 100%;
+  padding: 14px;
+  background: #ffffff;
+  box-shadow: var(--bevel-in);
+}
+
+.empty-canvas {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.empty-card {
+  height: 64px;
+  border: 2px dashed var(--shade);
+}
+
+.empty-card--primary {
+  background: var(--amber);
+  border: 2px solid var(--ink);
+}
+
+.empty-card--wide {
+  grid-column: 1 / -1;
+  height: 48px;
+}
+
+.progress {
+  height: 26px;
+  margin-top: 12px;
+  padding: 3px;
+  background: #ffffff;
+  box-shadow: var(--bevel-in);
+  overflow: hidden;
+}
+
+.progress-fill {
+  width: 0;
+  height: 100%;
+  background: repeating-linear-gradient(90deg, var(--title-a) 0 12px, transparent 12px 15px);
+  animation: progress 2.4s steps(14, end) infinite;
+}
+
+@keyframes progress {
+  to {
+    width: 100%;
+  }
+}
+
+/* ── 결과 창 ── */
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 18px;
+  align-items: flex-start;
+  margin-bottom: 14px;
+}
+
+.card-prompt {
+  min-width: 0;
+  max-width: 70ch;
+  font-weight: 700;
+  line-height: 1.6;
+}
+
+.card-actions {
+  display: flex;
+  flex: 0 0 auto;
+  gap: 8px;
+}
+
+.card-tabs {
+  display: flex;
+  gap: 2px;
+  padding-left: 6px;
+  position: relative;
+  z-index: 1;
+}
+
+.tab {
+  min-height: 34px;
+  padding: 0 18px;
+  background: var(--face);
+  border: 0;
+  box-shadow: var(--bevel-out);
+  color: var(--ink-soft);
+  cursor: pointer;
+  margin-top: 4px;
+}
+
+.tab--active {
+  min-height: 38px;
+  margin-top: 0;
+  margin-bottom: -2px;
+  color: var(--ink);
+  font-weight: 700;
+}
+
+.card-content {
+  position: relative;
+  padding: 3px;
+  box-shadow: var(--bevel-out);
+}
+
+.preview-content {
+  padding: 0;
+}
+
+.preview-render {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 320px;
+  padding: 32px;
+  background-color: #ffffff;
+  background-image:
+    linear-gradient(#e6e6e6 1px, transparent 1px),
+    linear-gradient(90deg, #e6e6e6 1px, transparent 1px);
+  background-size: 16px 16px;
+  box-shadow: var(--bevel-in);
+}
+
+.preview-error {
+  margin-top: 8px;
+  padding: 10px 12px;
+  background: #ffffff;
+  box-shadow: var(--bevel-in);
+  color: var(--danger);
+  font-family: var(--font-code);
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
+
+.panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 4px 6px 8px;
+  color: var(--ink-soft);
+}
+
+.btn-copy {
+  min-height: 30px;
+}
+
+.code-block {
+  min-height: 320px;
+  margin: 0;
+  padding: 18px;
+  overflow-x: auto;
+  background: var(--editor-bg);
+  box-shadow: var(--bevel-in);
+  color: var(--editor-fg);
+  font-family: var(--font-code);
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+/* ── 하단 상태표시줄 ── */
+.status-bar {
+  position: fixed;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 10;
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  background: var(--face);
+  box-shadow: inset 0 2px 0 var(--hi), inset 0 1px 0 var(--face-light);
+}
+
+.status-cell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  padding: 2px 12px;
+  box-shadow: inset 1px 1px 0 var(--shade), inset -1px -1px 0 var(--hi);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.status-cell--grow {
+  flex: 1;
+}
+
+.status-led {
+  flex: 0 0 auto;
+  width: 10px;
+  height: 10px;
+  background: var(--ok);
+  box-shadow: inset -2px -2px 0 rgba(0, 0, 0, 0.35);
+}
+
+.status-led--busy {
+  background: var(--amber);
+}
+
+@media (max-width: 1000px) {
+  .workspace {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 760px) {
+  .app {
+    padding: 20px 12px 72px;
+  }
+
+  .app-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .header-copy h1 {
+    font-size: 28px;
+  }
+
+  .win-body {
+    padding: 12px;
+  }
+
+  .prompt-form,
+  .prompt-examples {
+    grid-template-columns: 1fr;
+  }
+
+  .btn-generate {
+    width: 100%;
+  }
+
+  .empty-body {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .empty-preview {
+    width: 100%;
+  }
+
+  .card-header {
+    flex-direction: column;
+  }
+
+  .card-actions {
+    width: 100%;
+  }
+
+  .card-actions .btn-regenerate,
+  .card-actions .btn-remove {
+    flex: 1;
+  }
+
+  .preview-render {
+    min-height: 240px;
+    padding: 16px;
+  }
+
+  .status-cell:not(.status-cell--grow):not(:last-child) {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .progress-fill {
+    width: 45%;
+    animation: none;
+  }
+}
