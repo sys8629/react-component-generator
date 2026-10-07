@@ -38,7 +38,16 @@ describe('App 영속성', () => {
       vi.fn().mockImplementation(async (url: string) =>
         url === '/api/config'
           ? CONFIG
-          : { ok: true, json: async () => ({ code: 'const A = () => null;\nrender(<A />);' }) },
+          : {
+              ok: true,
+              body: new ReadableStream<Uint8Array>({
+                start(controller) {
+                  const done = { type: 'done', code: 'const A = () => null;\nrender(<A />);' };
+                  controller.enqueue(new TextEncoder().encode(`${JSON.stringify(done)}\n`));
+                  controller.close();
+                },
+              }),
+            },
       ),
     );
     const user = userEvent.setup();

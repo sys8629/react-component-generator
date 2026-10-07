@@ -21,7 +21,7 @@ function App() {
     anthropic: false,
     google: false,
   });
-  const { components, isLoading, error, generate, removeComponent, clearAll } =
+  const { components, streaming, isLoading, error, generate, removeComponent, clearAll } =
     useComponentGenerator();
 
   useEffect(() => {
@@ -47,7 +47,10 @@ function App() {
     setApiKey('');
   };
 
-  const activeProvider = PROVIDER_CONFIG[provider].label;
+  // 생성 중인 카드를 맨 앞에 두고, 완료되면 같은 id의 저장된 카드로 이어진다.
+  const cards = streaming ? [streaming, ...components] : components;
+
+  const activeProvider =PROVIDER_CONFIG[provider].label;
 
   const keyState = apiKey.trim() ? '직접 입력' : hasEnvKey ? '.env 연결됨' : '없음';
 
@@ -164,28 +167,15 @@ function App() {
           </div>
         )}
 
-        {isLoading && (
-          <div className="win loading-card" role="status">
-            <div className="win-title">
-              <h2>생성 중</h2>
-            </div>
-            <div className="win-body">
-              <p>컴포넌트를 생성하고 있습니다...</p>
-              <div className="progress" aria-hidden="true">
-                <div className="progress-fill" />
-              </div>
-            </div>
-          </div>
-        )}
-
         <div className="results-grid">
-          {components.map((component) => (
+          {cards.map((component) => (
             <ComponentCard
               key={component.id}
               component={component}
               onRemove={removeComponent}
               onRegenerate={handleGenerate}
               isLoading={isLoading}
+              streaming={component.id === streaming?.id}
             />
           ))}
         </div>
