@@ -1,5 +1,6 @@
 import { stripCodeFences, ensureRenderCall } from './generator';
 import { withModelFallback } from './fallback';
+import { parseSSEData, anthropicDelta, geminiDelta, toNdjsonStream } from './stream';
 
 // 우선순위 순서. 앞 모델이 실패하면 다음 모델로 폴백한다.
 const GOOGLE_MODELS = ['gemini-3.1-flash-lite', 'gemini-3.5-flash'];
@@ -135,6 +136,93 @@ async function callGoogle(prompt: string, apiKey: string): Promise<string> {
   return withModelFallback(GOOGLE_MODELS, (model) => callGoogleModel(prompt, apiKey, model));
 }
 
+async function openAnthropicStream(prompt: string, apiKey: string): Promise<ReadableStream<Uint8Array>> {
+  const response = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': apiKey,
+      'anthropic-version': '2023-06-01',
+    },
+    body: JSON.stringify({
+      model: 'claude-haiku-4-5-20251001',
+      max_tokens: 4096,
+      stream: true,
+      system: SYSTEM_PROMPT,
+      messages: [{ role: 'user', content: prompt }],
+    }),
+  });
+
+  if (!response.ok || !response.body) {
+    throw new Error(`Claude API error: ${response.status}`);
+  }
+  return response.body;
+}
+
+async function openGoogleStream(prompt: string, apiKey: string, model: string): Promise<ReadableStream<Uint8Array>> {
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:streamGenerateContent?alt=sse&key=${apiKey}`;
+
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      system_instruction: { parts: [{ text: SYSTEM_PROMPT }] },
+      contents: [{ role: 'user', parts: [{ text: prompt }] }],
+      generationConfig: { maxOutputTokens: 8192 },
+    }),
+  });
+
+  if (!response.ok || !response.body) {
+    throw new Error(`Gemini API error: ${response.status}`);
+  }
+  return response.body;
+}
+
+async function* deltas(
+  body: ReadableStream<Uint8Array>,
+  extract: (data: string) => string
+): AsyncGenerator<string> {
+  for await (const data of parseSSEData(body)) {
+    const text = extract(data);
+    if (text) yield text;
+  }
+}
+
+// 업스트림 연결(HTTP 상태 확인)까지만 여기서 끝낸다. 연결 실패는 일반 JSON 에러로 응답할 수 있다.
+async function openStream(provider: Provider, prompt: string, apiKey: string): Promise<AsyncGenerator<string>> {
+  if (provider === 'google') {
+    const body = await withModelFallback(GOOGLE_MODELS, (model) => openGoogleStream(prompt, apiKey, model));
+    return deltas(body, geminiDelta);
+  }
+  return deltas(await openAnthropicStream(prompt, apiKey), anthropicDelta);
+}
+
+// 에러 메시지의 상태 코드 문자열로 HTTP 상태와 사용자 메시지를 결정한다.
+function toErrorResponse(err: unknown): { status: number; message: string } {
+  const message = err instanceof Error ? err.message : 'Unknown error';
+
+  if (message.includes('503')) {
+    return { status: 503, message: 'API 서버가 일시적으로 과부하 상태입니다. 잠시 후 다시 시도해주세요.' };
+  }
+  if (message.includes('429')) {
+    return { status: 429, message: '요청이 너무 많습니다. 잠시 후 다시 시도해주세요.' };
+  }
+  return { status: 500, message };
+}
+
+// 텍스트 조각을 NDJSON 이벤트(delta/done/error)로 내보내는 응답을 만든다.
+function streamResponse(source: AsyncGenerator<string>): Response {
+  const body = toNdjsonStream(
+    source,
+    (text) => ensureRenderCall(stripCodeFences(text)),
+    (err) => toErrorResponse(err).message
+  );
+
+  return new Response(body, {
+    headers: { ...CORS_HEADERS, 'Content-Type': 'application/x-ndjson', 'Cache-Control': 'no-cache' },
+  });
+}
+
 const server = Bun.serve({
   port: 3002,
   async fetch(req) {
@@ -156,7 +244,8 @@ const server = Bun.serve({
       );
     }
 
-    if (req.method === 'POST' && url.pathname === '/api/generate') {
+    const isStream = url.pathname === '/api/generate/stream';
+    if (req.method === 'POST' && (url.pathname === '/api/generate' || isStream)) {
       try {
         const { prompt, apiKey, provider = 'anthropic' } = (await req.json()) as {
           prompt: string;
@@ -180,6 +269,10 @@ const server = Bun.serve({
           );
         }
 
+        if (isStream) {
+          return streamResponse(await openStream(provider, prompt, resolvedKey));
+        }
+
         const text =
           provider === 'google'
             ? await callGoogle(prompt, resolvedKey)
@@ -189,26 +282,8 @@ const server = Bun.serve({
 
         return Response.json({ code }, { headers: CORS_HEADERS });
       } catch (err) {
-        const message = err instanceof Error ? err.message : 'Unknown error';
-
-        if (message.includes('503')) {
-          return Response.json(
-            { error: 'API 서버가 일시적으로 과부하 상태입니다. 잠시 후 다시 시도해주세요.' },
-            { status: 503, headers: CORS_HEADERS }
-          );
-        }
-
-        if (message.includes('429')) {
-          return Response.json(
-            { error: '요청이 너무 많습니다. 잠시 후 다시 시도해주세요.' },
-            { status: 429, headers: CORS_HEADERS }
-          );
-        }
-
-        return Response.json(
-          { error: message },
-          { status: 500, headers: CORS_HEADERS }
-        );
+        const { status, message } = toErrorResponse(err);
+        return Response.json({ error: message }, { status, headers: CORS_HEADERS });
       }
     }
 
