@@ -16,7 +16,8 @@
 ### Immutable
 
 - API 키 값을 클라이언트 응답, 로그, 에러 메시지에 노출하지 않는다. `/api/config`는 불리언만 반환한다 (`server/index.ts:147-157`). 환경 키는 서버의 `ENV_KEYS`에만 둔다 (`server/index.ts:59-62`).
-- 사용자 입력 키는 요청 body로만 전달한다. localStorage/sessionStorage에 저장하지 않는다 (`src/App.tsx:14`는 메모리 state만 사용).
+- 사용자 입력 키는 요청 body로만 서버에 전달한다. 사용자 요청에 따라 클라이언트 localStorage(`rcg:apiKey`, `src/App.tsx`)에 평문 저장되므로 로그, URL, 에러 메시지에 출력하지 않고 localStorage 키 외의 저장소에 복제하지 않는다.
+- localStorage 키는 `rcg:` 접두사를 쓴다 (`apiKey`, `provider`, `history`, `components`). 저장값은 `useLocalStorage`의 `revive`로 검증해 형식이 깨졌으면 초기값으로 복구한다.
 - `.env`는 커밋하지 않는다 (`.gitignore`).
 
 ### Do's and Don'ts
